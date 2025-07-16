@@ -126,40 +126,84 @@ graph TB
 
 ### Prerequisites
 - Linux/Unix environment
-- kubectl 1.21+
-- Terraform 1.0+
+- kubectl >={KUBECTL_MIN_VERSION}
+- Terraform >={TERRAFORM_MIN_VERSION}
+- yq (for YAML processing)
 
-### 1. Infrastructure Setup
+### 1. Configuration Setup
 ```bash
-# Clone repository
-git clone https://gitlab.local/devops-infrastructure.git
-cd devops-on-prem
+# Copy example values file
+cp values.yaml values.local.yaml
 
-# Initialize Terraform
+# Edit your values
+vim values.local.yaml
+
+# Update all configuration files
+./scripts/update-configs.sh
+```
+
+### 2. Infrastructure Setup
+```bash
+# Initialize Terraform with updated configuration
 cd terraform
 terraform init
 terraform apply
 
-# Install K3s
+# Install K3s with generated config
 cd ../infrastructure/k3s
 ./setup.sh
 ```
 
-### 2. Core Services Deployment
+### 3. Core Services Deployment
 ```bash
-# Configure ArgoCD
+# Deploy services using generated configurations
 cd ../argocd
 ./setup.sh
 
-# Deploy Monitoring Stack
 cd ../../monitoring
 ./setup.sh
 ```
 
-### 3. Application Platform
+### 4. Application Platform
 ```bash
 # Deploy Sample Application
-kubectl apply -f applicationset.yaml
+kubectl apply -f applicationset.yaml  # Replace with your application configuration
+```
+
+## 📝 Configuration Management
+
+### Central Configuration
+All configuration values are managed in a single `values.yaml` file:
+```yaml
+infrastructure:
+  k3s: {...}
+  gitlab: {...}
+  argocd: {...}
+monitoring:
+  prometheus: {...}
+  grafana: {...}
+security:
+  falco: {...}
+  opa: {...}
+```
+
+### Update Process
+1. Never modify `values.yaml` directly
+2. Create/update `values.local.yaml` with your values
+3. Run `./scripts/update-configs.sh`
+4. Commit template files, not actual values
+
+### Template Structure
+```plaintext
+/devops-on-prem/
+├── values.yaml          # Example values (committed)
+├── values.local.yaml    # Your actual values (gitignored)
+├── templates/          # Configuration templates
+│   ├── terraform.tfvars.template
+│   ├── k3s-config.yaml.template
+│   └── argocd-values.yaml.template
+└── scripts/
+    └── update-configs.sh  # Configuration update script
 ```
 
 ## 🔒 Security Features
@@ -202,7 +246,6 @@ kubectl apply -f applicationset.yaml
    - Terraform state recovery
    - Full cluster recovery
 
-
 ## 🔧 Maintenance
 
 ### Regular Tasks
@@ -237,6 +280,12 @@ kubectl logs -n <namespace> <pod-name>
 kubectl get certificates -A
 ```
 
+## 📞 Support
+
+- Infrastructure Team: {INFRA_TEAM_EMAIL}  # Replace with actual email
+- Security Team: {SECURITY_TEAM_EMAIL}  # Replace with actual email
+- Emergency: {EMERGENCY_CONTACT}  # Replace with actual contact number
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -246,4 +295,31 @@ kubectl get certificates -A
 
 ## 📄 License
 
-Copyright@2025devopshound
+Copyright@{ORGANIZATION_NAME}  # Replace with your organization name
+
+## 🔧 Parameters to Replace
+
+The following parameters need to be replaced with actual values:
+
+### Infrastructure Parameters
+- `{GITLAB_INSTANCE_URL}`: Your GitLab instance URL (e.g., gitlab.company.com)
+- `{NODE_IP}`: K3s node IP address
+- `{K3S_TOKEN}`: K3s cluster token
+- `{KUBECTL_MIN_VERSION}`: Minimum required kubectl version
+- `{TERRAFORM_MIN_VERSION}`: Minimum required Terraform version
+
+### Application Parameters
+- `{ARGOCD_ADMIN_PASSWORD}`: Initial ArgoCD admin password
+- `{ARGOCD_DOMAIN}`: ArgoCD ingress domain
+
+### Contact Information
+- `{INFRA_TEAM_EMAIL}`: Infrastructure team contact email
+- `{SECURITY_TEAM_EMAIL}`: Security team contact email
+- `{EMERGENCY_CONTACT}`: Emergency contact number
+- `{ORGANIZATION_NAME}`: Your organization name
+
+### Configuration Files
+The following files may need environment-specific values:
+- `terraform/environment.tfvars`
+- `helm/values/*.yaml`
+- `infrastructure/*/config.yaml`

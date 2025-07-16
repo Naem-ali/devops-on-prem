@@ -1,0 +1,6 @@
+# Ignore local values
+values.yaml
+values.local.yaml
+
+# Keep template files
+!templates/*.template
