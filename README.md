@@ -280,12 +280,6 @@ kubectl logs -n <namespace> <pod-name>
 kubectl get certificates -A
 ```
 
-## 📞 Support
-
-- Infrastructure Team: {INFRA_TEAM_EMAIL}  # Replace with actual email
-- Security Team: {SECURITY_TEAM_EMAIL}  # Replace with actual email
-- Emergency: {EMERGENCY_CONTACT}  # Replace with actual contact number
-
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -293,9 +287,6 @@ kubectl get certificates -A
 3. Commit changes
 4. Create merge request
 
-## 📄 License
-
-Copyright@{ORGANIZATION_NAME}  # Replace with your organization name
 
 ## 🔧 Parameters to Replace
 
@@ -311,12 +302,6 @@ The following parameters need to be replaced with actual values:
 ### Application Parameters
 - `{ARGOCD_ADMIN_PASSWORD}`: Initial ArgoCD admin password
 - `{ARGOCD_DOMAIN}`: ArgoCD ingress domain
-
-### Contact Information
-- `{INFRA_TEAM_EMAIL}`: Infrastructure team contact email
-- `{SECURITY_TEAM_EMAIL}`: Security team contact email
-- `{EMERGENCY_CONTACT}`: Emergency contact number
-- `{ORGANIZATION_NAME}`: Your organization name
 
 ### Configuration Files
 The following files may need environment-specific values:
