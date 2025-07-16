@@ -103,14 +103,23 @@ graph TB
 
 ```plaintext
 /devops-on-prem/
-├── infrastructure/    # Core infrastructure configuration
-│   ├── k3s/         # K3s cluster setup
-│   ├── argocd/      # ArgoCD configuration
-│   └── ingress/     # Ingress controller setup
-├── monitoring/       # Monitoring stack
-│   ├── prometheus/  # Prometheus configuration
-│   └── grafana/     # Grafana dashboards
-└── terraform/       # IaC configurations
+├── infrastructure/        # Core infrastructure configuration
+│   ├── k3s/             # K3s cluster setup
+│   ├── argocd/          # ArgoCD configuration
+│   ├── ingress/         # Ingress controller setup
+│   └── security/        # Security tools configuration
+│       ├── falco/       # Falco runtime security
+│       ├── kyverno/     # Policy management
+│       └── opa/         # Open Policy Agent/Gatekeeper
+├── monitoring/           # Monitoring stack
+│   ├── prometheus/      # Prometheus configuration
+│   └── grafana/         # Grafana dashboards
+├── helm/                # Helm charts
+│   ├── charts/         # Application Helm charts
+│   └── values/         # Environment-specific values
+└── terraform/           # IaC configurations
+    ├── cluster/        # K3s cluster resources
+    └── monitoring/     # Monitoring resources
 ```
 
 ## 🚀 Quick Start
@@ -193,10 +202,6 @@ kubectl apply -f applicationset.yaml
    - Terraform state recovery
    - Full cluster recovery
 
-## 📚 Documentation
-
-- [Architecture Guide](docs/architecture.md)
-- [Operations Guide](docs/operations.md)
 
 ## 🔧 Maintenance
 
@@ -232,12 +237,6 @@ kubectl logs -n <namespace> <pod-name>
 kubectl get certificates -A
 ```
 
-## 📞 Support
-
-- Infrastructure Team: infra@company.com
-- Security Team: security@company.com
-- Emergency: +1-555-0123
-
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -247,4 +246,4 @@ kubectl get certificates -A
 
 ## 📄 License
 
-Copyright (c) 2023 Your Company Name
+Copyright@2025devopshound
