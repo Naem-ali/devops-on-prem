@@ -10,6 +10,7 @@
 ### CI/CD & GitOps
 ![GitLab](https://img.shields.io/badge/gitlab-%23181717.svg?style=for-the-badge&logo=gitlab&logoColor=white)
 ![ArgoCD](https://img.shields.io/badge/argo%20cd-%23EF7B4D.svg?style=for-the-badge&logo=argo&logoColor=white)
+![Helm](https://img.shields.io/badge/helm-%23277A9F.svg?style=for-the-badge&logo=helm&logoColor=white)
 
 ### Security Tools
 ![Falco](https://img.shields.io/badge/falco-%232C3E50.svg?style=for-the-badge&logo=falco&logoColor=white)
@@ -38,6 +39,14 @@ graph TB
         subgraph GitOps
             ArgoCD --> Apps
             Git --> ArgoCD
+            HelmCharts[Helm Charts] --> ArgoCD
+        end
+        
+        subgraph Security
+            direction LR
+            Falco --> Apps
+            OPA[OPA/Gatekeeper] --> Apps
+            Kyverno --> Apps
         end
         
         subgraph Monitoring
@@ -49,24 +58,30 @@ graph TB
 
     subgraph CI/CD
         Git --> |Trigger| Pipeline[GitLab CI]
-        Pipeline --> ArgoCD
+        Pipeline --> |Build Charts| HelmCharts
+        Pipeline --> |Sync| ArgoCD
     end
 ```
 
 ### Data Flow
 ```mermaid
 graph LR
-    subgraph Application Layer
-        Apps[Applications]
+    subgraph Development
+        Git --> |Trigger| Pipeline
+        Pipeline --> |Build| HelmCharts[Helm Charts]
+        HelmCharts --> |Package| ArgoCD
+    end
+    
+    subgraph Runtime
+        ArgoCD --> |Deploy| Apps[Applications]
+        Falco --> |Monitor| Apps
+        OPA --> |Policy Check| Apps
+        Kyverno --> |Validate| Apps
     end
     
     subgraph Monitoring Layer
         Prometheus --> |Query| Grafana
         Apps --> |Metrics| Prometheus
-    end
-
-    subgraph GitOps Layer
-        ArgoCD --> |Deploy| Apps
     end
 ```
 
