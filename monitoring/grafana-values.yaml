@@ -1,0 +1,113 @@
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+    - monitoring.local
+    path: /
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-operated:9090
+        isDefault: true
+      - name: Loki
+        type: loki
+        url: http://loki:3100
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: default
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+  dashboards:
+    default:
+      k3s-cluster:
+        url: https://grafana.com/api/dashboards/15282/revisions/1/download
+        datasource: Prometheus
+      node-exporter:
+        gnetId: 1860
+        revision: 29
+        datasource: Prometheus
+      kubernetes-cluster:
+        gnetId: 13105
+        revision: 1
+        datasource: Prometheus
+      kubernetes-persistent-volumes:
+        gnetId: 13646
+        revision: 1
+        datasource: Prometheus
+      alerting-overview:
+        gnetId: 8010
+        revision: 1
+        datasource: Prometheus
+      vault-metrics:
+        gnetId: 12904
+        revision: 1
+        datasource: Prometheus
+      harbor-metrics:
+        gnetId: 9845
+        revision: 1
+        datasource: Prometheus
+      minio-metrics:
+        gnetId: 13502
+        revision: 1
+        datasource: Prometheus
+      backup-monitoring:
+        gnetId: 11055
+        revision: 1
+        datasource: Prometheus
+      certificate-monitoring:
+        gnetId: 13922
+        revision: 1
+        datasource: Prometheus
+        label: Certificates
+
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 10Gi
+    accessModes:
+    - ReadWriteOnce
+
+  # Backup configuration
+  backup:
+    enabled: true
+    schedule: "0 0 * * *"
+    existingSecret: grafana-backup-creds
+    storageClassName: local-path
+    size: 5Gi
+
+  adminPassword: admin-password-here
+
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+  auth:
+    generic_oauth:
+      enabled: true
+      name: Keycloak
+      allow_sign_up: true
+      client_id: grafana
+      client_secret: "${GRAFANA_OAUTH_SECRET}"
+      scopes: [ "openid", "profile", "email" ]
+      auth_url: https://auth.local/realms/infrastructure/protocol/openid-connect/auth
+      token_url: https://auth.local/realms/infrastructure/protocol/openid-connect/token
+      api_url: https://auth.local/realms/infrastructure/protocol/openid-connect/userinfo
+      role_attribute_path: "contains(roles[*], 'operator') && 'Admin' || contains(roles[*], 'developer') && 'Editor' || 'Viewer'"

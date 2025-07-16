@@ -1,0 +1,37 @@
+prometheus:
+  monitor:
+    enabled: true
+    honorLabels: true
+    interval: "30s"
+
+collectors:
+- certificatesigningrequests
+- configmaps
+- cronjobs
+- daemonsets
+- deployments
+- endpoints
+- horizontalpodautoscalers
+- ingresses
+- jobs
+- limitranges
+- namespaces
+- nodes
+- persistentvolumeclaims
+- persistentvolumes
+- pods
+- replicasets
+- replicationcontrollers
+- resourcequotas
+- secrets
+- services
+- statefulsets
+- storageclasses
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi

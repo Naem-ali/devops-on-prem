@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-ingress
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: monitoring
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: frontend
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: infrastructure
+  - ports:
+    - protocol: TCP
+      port: 9090 # Prometheus
+    - protocol: TCP
+      port: 3100 # Loki
+    - protocol: TCP
+      port: 3000 # Grafana
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prometheus-scrape
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: metrics
+    - protocol: TCP
+      port: 9090

@@ -1,0 +1,26 @@
+environment: staging
+
+replicaCount: 2
+
+image:
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: true
+  hosts:
+  - host: staging.huggingface.local
+    paths:
+    - path: /
+      pathType: Prefix
+
+resources:
+  limits:
+    cpu: 400m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+# Staging-specific settings
+debugMode: false
+logLevel: info

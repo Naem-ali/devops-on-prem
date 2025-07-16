@@ -1,0 +1,46 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: internal-ca-issuer
+  annotations:
+    cert-manager.io/common-name-prefix: "internal"
+    cert-manager.io/min-key-size: "2048"
+spec:
+  ca:
+    secretName: internal-ca-key-pair
+    crlDistributionPoints:
+    - http://crl.internal.local/crl
+    ocspServers:
+    - http://ocsp.internal.local/ocsp
+  privateKey:
+    algorithm: RSA
+    size: 4096
+    rotationPolicy: Always
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: certificate-template
+  namespace: cert-manager
+  annotations:
+    cert-manager.io/rotation-strategy: "immediate"
+    cert-manager.io/rotation-schedule: "0 0 1 * *" # Monthly rotation
+spec:
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+    rotationPolicy: Always
+  keystores:
+    jks:
+      create: true
+      passwordSecretRef:
+        name: keystore-password
+        key: password
+  subject:
+    organizations:
+    - "Internal CA"
+    organizationalUnits:
+    - "Security"

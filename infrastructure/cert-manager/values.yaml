@@ -1,0 +1,24 @@
+installCRDs: true
+
+replicaCount: 1
+
+extraArgs:
+- --dns01-recursive-nameservers=8.8.8.8:53,1.1.1.1:53
+- --dns01-recursive-nameservers-only
+
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true
+
+securityContext:
+  enabled: true
+  fsGroup: 1001
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

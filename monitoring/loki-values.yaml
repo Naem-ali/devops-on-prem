@@ -1,0 +1,126 @@
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 50Gi
+  compactor:
+    retention_enabled: true
+    retention_delete_delay: 2h
+    retention_delete_worker_count: 150
+  limits_config:
+    retention_period: 30d
+    retention_stream:
+    - selector: '{env="production"}'
+      priority: 1
+      period: 90d
+    - selector: '{namespace="monitoring"}'
+      priority: 2
+      period: 45d
+    - selector: '{level="error"}'
+      priority: 1
+      period: 60d
+  schema_config:
+    configs:
+    - from: "2023-01"
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v12
+      index:
+        prefix: index_
+        period: 24h
+  config:
+    ingester:
+      chunk_idle_period: 1h
+      chunk_block_size: 262144
+      chunk_retain_period: 1m
+      max_chunk_age: 1h
+      lifecycler:
+        ring:
+          replication_factor: 1
+
+    limits_config:
+      enforce_metric_name: false
+      reject_old_samples: true
+      reject_old_samples_max_age: 168h
+      max_entries_limit_per_query: 5000
+
+    schema_config:
+      configs:
+      - from: 2023-01
+        store: boltdb-shipper
+        object_store: filesystem
+        schema: v12
+        index:
+          prefix: index_
+          period: 24h
+
+    analytics:
+      reporting_enabled: false
+
+    ruler:
+      alertmanager_url: http://prometheus-alertmanager:9093
+
+ruler:
+  enabled: true
+  rules:
+    recording:
+    - groups:
+      - name: log-stats
+        rules:
+        - record: log_messages_total
+          expr: sum by (namespace, app) (count_over_time({job="kubernetes-pods"}[1h]))
+    alerting:
+    - groups:
+      - name: log-alerts
+        rules:
+        - alert: HighErrorRate
+          expr: sum by (namespace) (rate({job="kubernetes-pods"} |= "error" [5m])) > 0.1
+          for: 5m
+          labels:
+            severity: warning
+    alert_rules:
+    - name: high_error_rate
+      rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate({level="error"}[5m])) by (namespace, app) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High error rate in {{ $labels.namespace }}/{{ $labels.app }}
+      - alert: LogVolume
+        expr: |
+          sum(rate({level!="debug"}[5m])) by (namespace) > 1000
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: High log volume in {{ $labels.namespace }}
+      - alert: MissingLogs
+        expr: |
+          absent(rate({namespace=~".+"}[5m])) == 1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: No logs received in the last 10 minutes
+
+promtail:
+  enabled: true
+  config:
+    snippets:
+      extraScrapeConfigs: |
+        - job_name: k3s-logs
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - action: replace
+              source_labels:
+                - __meta_kubernetes_pod_node_name
+              target_label: node_name

@@ -1,0 +1,17 @@
+mirrors:
+  "registry.local":
+    endpoint:
+    - "https://registry.local"
+  "docker.io":
+    endpoint:
+    - "https://registry-1.docker.io"
+
+configs:
+  "registry.local":
+    auth:
+      username: "${REGISTRY_USER}"
+      password: "${REGISTRY_PASSWORD}"
+    tls:
+      cert_file: "/etc/crio/certs/registry-cert.pem"
+      key_file: "/etc/crio/certs/registry-key.pem"
+      ca_file: "/etc/crio/certs/ca.pem"

@@ -1,0 +1,131 @@
+config:
+  logLevel: info
+  serverPort: 3101
+  clients:
+  - url: http://loki.monitoring:3100/loki/api/v1/push
+
+  snippets:
+    extraScrapeConfigs: |
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            target_label: app
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_node_name]
+            target_label: node
+
+      - job_name: kubernetes-events
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - target_label: __host__
+            source_labels: [__meta_kubernetes_node_name]
+            replacement: /var/log/kube-apiserver-audit.log
+
+      # System Components
+      - job_name: system
+        static_configs:
+          - targets: [localhost]
+            labels:
+              job: system
+              __path__: /var/log/{syslog,messages,auth.log}
+
+      # Vault Logs
+      - job_name: vault
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [vault]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            target_label: app
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: vault_node
+
+      # Harbor Registry Logs
+      - job_name: harbor
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [infrastructure]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: harbor
+            action: keep
+
+      # MinIO Logs
+      - job_name: minio
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [infrastructure]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            regex: minio
+            action: keep
+
+      # ArgoCD Logs
+      - job_name: argocd
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [argocd]
+
+      # K3s System Logs
+      - job_name: k3s
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [kube-system]
+
+      # Application Logs with metadata
+      - job_name: app-logs
+        pipeline_stages:
+          - json:
+              expressions:
+                level: level
+                timestamp: timestamp
+                message: message
+          - labels:
+              level:
+          - timestamp:
+              source: timestamp
+              format: RFC3339
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [frontend-dev, frontend-staging, frontend-prod]
+
+serviceMonitor:
+  enabled: true
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+tolerations:
+- operator: Exists
+
+volumeMounts:
+- name: varlog
+  mountPath: /var/log
+- name: varlibdockercontainers
+  mountPath: /var/lib/docker/containers
+  readOnly: true
+
+volumes:
+- name: varlog
+  hostPath:
+    path: /var/log
+- name: varlibdockercontainers
+  hostPath:
+    path: /var/lib/docker/containers

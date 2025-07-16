@@ -1,0 +1,51 @@
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: "${SLACK_WEBHOOK_URL}"
+      smtp_smarthost: "smtp.example.com:587"
+      smtp_from: "alertmanager@example.com"
+      smtp_auth_username: "${SMTP_USER}"
+      smtp_auth_password: "${SMTP_PASSWORD}"
+
+    route:
+      group_by: [ 'namespace', 'severity' ]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: 'slack-notifications'
+      routes:
+      - match:
+          severity: critical
+        receiver: 'pager-duty-critical'
+      - match:
+          severity: warning
+        receiver: 'slack-notifications'
+      - match:
+          severity: info
+        receiver: 'email-notifications'
+
+    receivers:
+    - name: 'slack-notifications'
+      slack_configs:
+      - channel: '#k8s-alerts'
+        title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }} *Alert:* {{ .Annotations.summary }} *Description:* {{ .Annotations.description }} *Severity:* {{ .Labels.severity }} *Duration:* {{ .Duration }} {{ end }}
+
+    - name: 'pager-duty-critical'
+      pagerduty_configs:
+      - service_key: "${PAGERDUTY_KEY}"
+        description: '{{ .CommonLabels.alertname }}'
+
+    - name: 'email-notifications'
+      email_configs:
+      - to: 'team@example.com'
+        send_resolved: true
+
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'warning'
+      equal: [ 'alertname', 'namespace' ]

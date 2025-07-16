@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k3s-backup
+  namespace: kube-system
+spec:
+  schedule: "0 1 * * *" # Daily at 1 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: k3s-backup
+            image: alpine:3.14
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache tar gzip
+              BACKUP_FILE="/backup/k3s-$(date +%Y%m%d).tar.gz"
+              tar czf $BACKUP_FILE /var/lib/rancher/k3s/server/db/
+              echo "Backup completed: $BACKUP_FILE"
+            volumeMounts:
+            - name: k3s-data
+              mountPath: /var/lib/rancher/k3s
+              readOnly: true
+            - name: backup-store
+              mountPath: /backup
+          volumes:
+          - name: k3s-data
+            hostPath:
+              path: /var/lib/rancher/k3s
+          - name: backup-store
+            persistentVolumeClaim:
+              claimName: backup-store
+          restartPolicy: OnFailure
+          nodeSelector:
+            node-role.kubernetes.io/master: "true"

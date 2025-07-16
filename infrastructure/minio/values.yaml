@@ -1,0 +1,29 @@
+mode: standalone
+
+persistence:
+  enabled: true
+  size: 100Gi
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: traefik
+  hosts:
+  - artifacts.local
+
+resources:
+  requests:
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+
+rootUser: "admin"
+rootPassword: "minioadmin"
+
+buckets:
+- name: gitlab-artifacts
+  policy: none
+  purge: false
+- name: build-cache
+  policy: none
+  purge: false

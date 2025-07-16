@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-audit-config
+  namespace: vault
+data:
+  audit.hcl: |
+    audit "file" {
+      path = "/vault/audit/vault-audit.log"
+      format = "json"
+      prefix = "vault-audit"
+      log_raw = false
+    }
+
+    audit "syslog" {
+      tag = "vault-audit"
+      facility = "AUTH"
+      format = "json"
+    }

@@ -1,0 +1,72 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: developer-role
+rules:
+- apiGroups: [ "", "apps", "networking.k8s.io" ]
+  resources: [ "pods", "services", "deployments", "ingresses" ]
+  verbs: [ "get", "list", "watch" ]
+- apiGroups: [ "" ]
+  resources: [ "pods/log" ]
+  verbs: [ "get", "list" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator-role
+rules:
+- apiGroups: [ "*" ]
+  resources: [ "*" ]
+  verbs: [ "*" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: qa-role
+rules:
+- apiGroups: [ "", "apps" ]
+  resources: [ "pods", "services", "deployments" ]
+  verbs: [ "get", "list", "watch" ]
+- apiGroups: [ "" ]
+  resources: [ "pods/exec", "pods/log" ]
+  verbs: [ "get", "list", "create" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: developer-binding
+subjects:
+- kind: Group
+  name: DevTeam
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: developer-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: operator-binding
+subjects:
+- kind: Group
+  name: OpsTeam
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: operator-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: qa-binding
+subjects:
+- kind: Group
+  name: QATeam
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: qa-role
+  apiGroup: rbac.authorization.k8s.io

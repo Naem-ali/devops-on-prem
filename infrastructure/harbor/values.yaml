@@ -1,0 +1,25 @@
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+
+persistence:
+  enabled: true
+  imageChartStorage:
+    type: filesystem
+    filesystem:
+      rootdirectory: /storage
+
+backup:
+  enabled: true
+  # Run backup every day at 2 AM
+  schedule: "0 2 * * *"
+  storage:
+    type: s3
+    s3:
+      bucket: harbor-backup
+      accesskey: "${MINIO_ACCESS_KEY}"
+      secretkey: "${MINIO_SECRET_KEY}"
+      regionendpoint: http://minio.infrastructure:9000
+      region: minio
+      forcePathStyle: true

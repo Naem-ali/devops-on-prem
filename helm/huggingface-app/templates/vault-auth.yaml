@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: huggingface-app
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/agent-pre-populate-only: "true"
+    vault.hashicorp.com/agent-inject-secret-config: "secret/data/huggingface/config"
+    vault.hashicorp.com/role: "huggingface-app"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-secrets
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/agent-inject-status: "update"
+type: Opaque

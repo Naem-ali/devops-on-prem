@@ -1,0 +1,96 @@
+replicaCount: 2
+
+image:
+  registry: registry.local
+  repository: frontend/huggingface-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+- name: registry-credentials
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+podAnnotations:
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/role: "huggingface-app"
+  vault.hashicorp.com/agent-inject-secret-app-config: "secret/data/huggingface/config"
+  vault.hashicorp.com/agent-inject-template-app-config: |
+    {{- with secret "secret/data/huggingface/config" -}}
+    export API_KEY="{{ .Data.data.api_key }}"
+    export DB_PASSWORD="{{ .Data.data.db_password }}"
+    {{- end -}}
+  promtail.io/scrape: "true"
+  promtail.io/app: "huggingface-app"
+  promtail.io/parser: "json"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "internal-ca-issuer"
+    kubernetes.io/tls-acme: "true"
+  hosts:
+  - host: huggingface.local
+    paths:
+    - path: /
+      pathType: Prefix
+  tls:
+  - secretName: huggingface-tls
+    hosts:
+    - huggingface.local
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+commonLabels:
+  app.kubernetes.io/name: huggingface-app
+  app.kubernetes.io/instance: '{{ .Release.Name }}'
+  app.kubernetes.io/version: '{{ .Chart.AppVersion }}'
+  app.kubernetes.io/managed-by: '{{ .Release.Service }}'
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+env:
+- name: LOG_LEVEL
+  value: "info"
+- name: JSON_LOGGING
+  value: "true"
+- name: LOG_TIMESTAMP_FORMAT
+  value: "RFC3339"

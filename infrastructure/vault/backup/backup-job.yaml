@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-backup
+  namespace: vault
+spec:
+  schedule: "0 1 * * *" # Daily at 1 AM
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: vault-backup
+          containers:
+          - name: backup
+            image: vault:1.12.0
+            command: [ "/bin/sh", "-c" ]
+            args:
+            - |
+              # Authenticate
+              vault login -method=kubernetes \
+                role=backup \
+                jwt=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+
+              # Create snapshot
+              vault operator raft snapshot save \
+                /backup/vault-$(date +%Y%m%d-%H%M%S).snap
+
+              # Upload to MinIO
+              mc config host add minio $MINIO_ENDPOINT $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+              mc cp /backup/*.snap minio/vault-backup/
+
+              # Cleanup old backups
+              find /backup -type f -mtime +7 -delete
+            env:
+            - name: VAULT_ADDR
+              value: "http://vault:8200"
+            - name: MINIO_ENDPOINT
+              value: "http://minio.infrastructure:9000"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: access-key
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: secret-key
+            volumeMounts:
+            - name: backup
+              mountPath: /backup
+          volumes:
+          - name: backup
+            emptyDir: {}
+          restartPolicy: OnFailure

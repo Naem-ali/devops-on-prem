@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: realm-config
+data:
+  realm.json: |
+    {
+      "realm": "infrastructure",
+      "enabled": true,
+      "clients": [
+        {
+          "clientId": "grafana",
+          "enabled": true,
+          "protocol": "openid-connect",
+          "redirectUris": ["https://monitoring.local/*"],
+          "webOrigins": ["https://monitoring.local"]
+        },
+        {
+          "clientId": "argocd",
+          "enabled": true,
+          "protocol": "openid-connect",
+          "redirectUris": ["https://argocd.local/*"],
+          "webOrigins": ["https://argocd.local"]
+        }
+      ],
+      "roles": {
+        "realm": [
+          {"name": "developer"},
+          {"name": "operator"},
+          {"name": "qa-engineer"}
+        ]
+      },
+      "groups": [
+        {
+          "name": "DevTeam",
+          "realmRoles": ["developer"]
+        },
+        {
+          "name": "OpsTeam",
+          "realmRoles": ["operator"]
+        },
+        {
+          "name": "QATeam",
+          "realmRoles": ["qa-engineer"]
+        }
+      ]
+    }

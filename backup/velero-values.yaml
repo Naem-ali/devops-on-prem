@@ -1,0 +1,48 @@
+configuration:
+  provider: aws
+  backupStorageLocation:
+    name: default
+    provider: aws
+    bucket: backups
+    config:
+      region: minio
+      s3ForcePathStyle: true
+      s3Url: http://minio.infrastructure:9000
+  volumeSnapshotLocation:
+    name: default
+    provider: aws
+
+credentials:
+  useSecret: true
+  existingSecret: minio-credentials
+
+initContainers:
+- name: velero-plugin-for-aws
+  image: velero/velero-plugin-for-aws:v1.5.0
+  volumeMounts:
+  - mountPath: /target
+    name: plugins
+
+schedules:
+  infrastructure-backup:
+    schedule: "0 1 * * *"
+    template:
+      includedNamespaces:
+      - infrastructure
+      - vault
+      - monitoring
+      includedResources:
+      - persistentvolumeclaims
+      - persistentvolumes
+      - secrets
+      ttl: "168h"
+
+  registry-backup:
+    schedule: "0 2 * * *"
+    template:
+      includedNamespaces:
+      - infrastructure
+      labelSelector:
+        matchLabels:
+          app: harbor
+      ttl: "168h"

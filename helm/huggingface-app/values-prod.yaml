@@ -1,0 +1,36 @@
+environment: production
+
+replicaCount: 3
+
+image:
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+  - host: huggingface.local
+    paths:
+    - path: /
+      pathType: Prefix
+  tls:
+  - secretName: huggingface-tls
+    hosts:
+    - huggingface.local
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Production-specific settings
+debugMode: false
+logLevel: warn
+hpa:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10

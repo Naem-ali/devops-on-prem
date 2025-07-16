@@ -1,0 +1,28 @@
+service:
+  annotations:
+    prometheus.io/scrape: "true"
+
+tolerations:
+- operator: Exists
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 50Mi
+  requests:
+    cpu: 100m
+    memory: 30Mi
+
+prometheus:
+  monitor:
+    enabled: true
+    additionalLabels:
+      release: prometheus
+
+extraArgs:
+- --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+- --collector.systemd
+- --collector.processes
+
+podAnnotations:
+  cluster-autoscaler.kubernetes.io/safe-to-evict: "true"

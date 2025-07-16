@@ -1,0 +1,23 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-backup
+  namespace: velero
+spec:
+  schedule: "0 3 * * *" # Daily at 3 AM
+  template:
+    includedNamespaces:
+    - frontend
+    - monitoring
+    - infrastructure
+    includedResources:
+    - persistentvolumeclaims
+    - persistentvolumes
+    labelSelector:
+      matchLabels:
+        backup: "true"
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+  useOwnerReferencesInBackup: true
+  ttl: 720h # 30 days retention

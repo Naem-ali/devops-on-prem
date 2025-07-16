@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: helm-backup
+  namespace: kube-system
+spec:
+  schedule: "0 2 * * *" # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: helm-backup
+            image: alpine/helm:3.9.0
+            command:
+            - /bin/sh
+            - -c
+            - |
+              for ns in $(kubectl get ns -o name); do
+                ns=${ns#namespace/}
+                mkdir -p /backup/helm/$ns
+                for release in $(helm list -n $ns -q); do
+                  helm get values $release -n $ns > /backup/helm/$ns/$release-values.yaml
+                  helm get all $release -n $ns > /backup/helm/$ns/$release-all.yaml
+                done
+              done
+            volumeMounts:
+            - name: backup-store
+              mountPath: /backup
+          volumes:
+          - name: backup-store
+            persistentVolumeClaim:
+              claimName: backup-store
+          serviceAccountName: helm-backup
+          restartPolicy: OnFailure

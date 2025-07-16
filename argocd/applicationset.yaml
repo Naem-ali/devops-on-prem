@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: huggingface-environments
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - environment: development
+        cluster: in-cluster
+        namespace: frontend-dev
+        valueFile: values-dev.yaml
+        branch: develop
+      - environment: staging
+        cluster: in-cluster
+        namespace: frontend-staging
+        valueFile: values-staging.yaml
+        branch: main
+      - environment: production
+        cluster: in-cluster
+        namespace: frontend-prod
+        valueFile: values-prod.yaml
+        branch: main
+
+  template:
+    metadata:
+      name: 'huggingface-{{environment}}'
+      namespace: argocd
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: frontend=registry.local/frontend/huggingface-app
+    spec:
+      project: default
+      source:
+        repoURL: 'https://gitlab.local/your-project/huggingface-app.git'
+        targetRevision: '{{branch}}'
+        path: helm/huggingface-app
+        helm:
+          valueFiles:
+          - values.yaml
+          - '{{valueFile}}'
+      destination:
+        server: '{{cluster}}'
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+        - CreateNamespace=true

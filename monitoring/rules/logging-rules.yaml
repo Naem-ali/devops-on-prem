@@ -1,0 +1,52 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: logging-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: logging.rules
+    rules:
+    - alert: LoggingSystemFailure
+      expr: |
+        rate(loki_distributor_lines_dropped_total[5m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+        team: platform
+      annotations:
+        summary: Logging system is dropping lines
+        description: "{{ $value }} lines dropped in the last 5 minutes"
+
+    - alert: HighErrorLogRate
+      expr: |
+        sum by (namespace, app) (rate({level="error"}[5m])) > 0.05
+      for: 10m
+      labels:
+        severity: warning
+        team: application
+      annotations:
+        summary: High error log rate detected
+        description: "Error rate of {{ $value }} in {{ $labels.namespace }}/{{ $labels.app }}"
+
+    - alert: LogScrapingLag
+      expr: |
+        max by (instance) (promtail_request_duration_seconds{quantile="0.9"}) > 10
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: Log scraping is lagging
+        description: "90th percentile of log scraping duration is {{ $value }}s"
+
+    - alert: StorageUtilization
+      expr: |
+        loki_ingester_memory_chunks > 1e6
+      for: 15m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: High storage utilization in logging system
+        description: "Memory chunks count is {{ $value }}"

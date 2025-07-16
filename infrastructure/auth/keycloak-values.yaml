@@ -1,0 +1,29 @@
+auth:
+  adminUser: admin
+  existingSecret: keycloak-admin-creds
+
+ingress:
+  enabled: true
+  hostname: auth.local
+  annotations:
+    kubernetes.io/ingress.class: traefik
+
+postgresql:
+  enabled: true
+  persistence:
+    size: 10Gi
+
+extraEnvVars:
+- name: KEYCLOAK_EXTRA_ARGS
+  value: "--proxy edge --hostname-strict=false"
+- name: PROXY_ADDRESS_FORWARDING
+  value: "true"
+
+extraVolumes:
+- name: realm-config
+  configMap:
+    name: realm-config
+
+extraVolumeMounts:
+- name: realm-config
+  mountPath: /opt/keycloak/data/import

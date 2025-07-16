@@ -1,0 +1,57 @@
+service:
+  logLevel: info
+  parsersFile: custom_parsers.conf
+
+# Custom parsing rules
+config:
+  filters: |
+    [FILTER]
+        Name    kubernetes
+        Match   kube.*
+        Merge_Log           On
+        Keep_Log            Off
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude Off
+
+    [FILTER]
+        Name    grep
+        Match   *
+        Exclude $log ^\s*$
+
+    [FILTER]
+        Name    record_modifier
+        Match   *
+        Record  cluster_name k3s-production
+
+  outputs: |
+    [OUTPUT]
+        Name            loki
+        Match           *
+        Host            loki.monitoring
+        Port            3100
+        Labels          job=fluentbit, cluster=k3s
+        RemoveKeys      time,stream
+        LabelKeys       $kubernetes['namespace_name'],$kubernetes['pod_name'],$kubernetes['container_name']
+        LineFormat      json
+
+  customParsers: |
+    [PARSER]
+        Name    k8s-nginx-ingress
+        Format  regex
+        Regex   ^(?<host>[^ ]*) - - \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key    time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+serviceMonitor:
+  enabled: true
+
+tolerations:
+- operator: Exists
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
