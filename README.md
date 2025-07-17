@@ -47,10 +47,15 @@ graph TB
         subgraph Security
             direction LR
             Falco --> |Runtime Security| Apps
-            OPA[OWASP] --> |Policy Enforcement| Apps
+            OPA[OPA/Gatekeeper] --> |Policy Enforcement| Apps
             Kyverno --> |Admission Control| Apps
             Trivy --> |Vulnerability Scanning| Apps
             DependencyCheck[Dependency Check] --> |CVE Scanning| Apps
+        end
+        
+        subgraph Storage
+            MinIO[MinIO] --> |Version Control| TerraformState[Terraform State]
+            MinIO --> |Backup| StateBackup[State Backups]
         end
         
         subgraph Monitoring
@@ -66,12 +71,7 @@ graph TB
         Pipeline --> |Build Charts| HelmCharts
         Pipeline --> |Sync| ArgoCD
         Pipeline --> |Security Scan| SecurityScans[Security Scans]
-        
-        subgraph SecurityScans
-            Trivy --> |Container Scan| Pipeline
-            Trivy --> |IaC Scan| Pipeline
-            DependencyCheck --> |Dependency Scan| Pipeline
-        end
+        Pipeline --> |State Management| MinIO
     end
 ```
 
@@ -150,6 +150,10 @@ graph TB
 │       │   └── custom-policies/  # Environment-specific policies
 │       └── opa/            # Open Policy Agent/Gatekeeper
 │           └── constraints/  # OPA constraints
+│   └── storage/           # Storage configuration
+│       └── minio/        # MinIO for Terraform state
+│           ├── values.yaml # MinIO Helm values
+│           └── backup/    # Backup configurations
 ├── monitoring/             # Monitoring stack
 │   ├── prometheus/        # Prometheus configuration
 │   │   ├── rules/        # Alert rules
@@ -164,6 +168,7 @@ graph TB
 │       ├── production.yaml
 │       └── monitoring.yaml
 ├── terraform/             # IaC configurations
+│   ├── backend.tf        # Terraform state configuration
 │   ├── cluster/          # K3s cluster resources
 │   │   └── variables.tf  # Cluster variables
 │   └── monitoring/       # Monitoring resources
@@ -172,7 +177,8 @@ graph TB
 │   ├── update-configs.sh # Configuration management
 │   ├── setup-kyverno.sh # Kyverno setup
 │   ├── trivy-scan.sh    # Security scanning
-│   └── dependency-check.sh # Dependency scanning
+│   ├── dependency-check.sh # Dependency scanning
+│   └── setup-minio.sh   # MinIO setup script
 ├── templates/            # Configuration templates
 │   ├── terraform.tfvars.template
 │   ├── k3s-config.yaml.template
@@ -208,7 +214,10 @@ vim values.local.yaml
 
 ### 2. Infrastructure Setup
 ```bash
-# Initialize Terraform with updated configuration
+# Initialize MinIO storage
+./scripts/setup-minio.sh
+
+# Initialize Terraform with MinIO backend
 cd terraform
 terraform init
 terraform apply
@@ -251,6 +260,18 @@ security:
   opa: {...}
   trivy: {...}
   dependency-check: {...}
+storage:
+  minio:
+    version: "RELEASE.2023-10-07T15-07-38Z"
+    access_key: "xxx"
+    secret_key: "xxx"
+    bucket_name: "terraform-state"
+    backup:
+      enabled: true
+      retention: "30d"
+    ha:
+      enabled: true
+      replicas: 4
 ```
 
 ### Update Process
@@ -274,25 +295,40 @@ security:
 
 ## 🔒 Security Features
 
-1. **Authentication & Authorization**
+1. **Admission Control Policies**
+   - Non-root container enforcement
+   - Resource limits requirement
+   - Privileged container prevention
+   - Required labels validation
+   - Latest tag prevention
+   - Image registry restriction
+
+2. **State Management**
+   - Versioned state storage
+   - State locking
+   - Automated backups
+   - Object versioning
+   - Access control
+
+3. **Authentication & Authorization**
    - RBAC policies
    - Service accounts
 
-2. **Secret Management**
+4. **Secret Management**
    - Automated rotation
    - Audit logging
 
-3. **Container Security**
+5. **Container Security**
    - SecurityContext
    - Network policies
 
-4. **Dependency Security**
+6. **Dependency Security**
    - OWASP Dependency-Check scanning
    - CVE vulnerability detection
    - Configurable CVSS thresholds
    - Custom suppressions support
 
-5. **Infrastructure Security Scanning**
+7. **Infrastructure Security Scanning**
    - Trivy container scanning
    - Kubernetes resource scanning
    - Configuration file scanning

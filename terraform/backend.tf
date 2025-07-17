@@ -1,13 +1,10 @@
 terraform {
-  backend "s3" {
-    bucket                      = "terraform-state"
-    key                         = "infrastructure/terraform.tfstate"
-    endpoint                    = "http://minio.infrastructure:9000"
-    force_path_style           = true
-    skip_credentials_validation = true
-    skip_metadata_api_check    = true
-    skip_region_validation     = true
-    region                     = "main"
+  backend "http" {
+    address = "http://minio.infrastructure.svc.cluster.local:9000/terraform-state/terraform.tfstate"
+    lock_address = "http://minio.infrastructure.svc.cluster.local:9000/terraform-state/terraform.tfstate.lock"
+    unlock_address = "http://minio.infrastructure.svc.cluster.local:9000/terraform-state/terraform.tfstate.lock"
+    username = "${storage_minio_access_key}"
+    password = "${storage_minio_secret_key}"
   }
 }
 
@@ -19,8 +16,8 @@ resource "null_resource" "state_backup" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      aws s3 cp terraform.tfstate s3://terraform-state/backups/terraform-$(date +%Y%m%d-%H%M%S).tfstate \
-        --endpoint-url http://minio.infrastructure:9000
+      mc alias set minio http://minio.infrastructure.svc.cluster.local:9000 ${storage_minio_access_key} ${storage_minio_secret_key}
+      mc cp terraform.tfstate minio/terraform-state/backups/terraform-$(date +%Y%m%d-%H%M%S).tfstate
     EOT
   }
 }
