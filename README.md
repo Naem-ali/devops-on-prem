@@ -220,6 +220,21 @@ security:
    - SecurityContext
    - Network policies
 
+4. **Dependency Security**
+   - OWASP Dependency-Check scanning
+   - CVE vulnerability detection
+   - Configurable CVSS thresholds
+   - Custom suppressions support
+
+### Running Security Scans
+```bash
+# Run dependency vulnerability scan
+./scripts/dependency-check.sh
+
+# View reports
+open reports/dependency-check/dependency-check-report.html
+```
+
 ## 📊 Monitoring & Logging
 
 1. **Metrics**

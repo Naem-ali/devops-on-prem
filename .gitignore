@@ -4,3 +4,7 @@ values.local.yaml
 
 # Keep template files
 !templates/*.template
+
+# Security scanning
+/security/data/
+/reports/
