@@ -21,6 +21,9 @@ update_configs() {
     # Update Helm values
     envsubst < templates/helm-values.yaml.template > helm/values/production.yaml
     
+    # Update Kyverno policies
+    envsubst < templates/kyverno-policies.yaml.template > infrastructure/security/kyverno/policies/policies.yaml
+    
     echo "Configuration files updated successfully!"
 }
 

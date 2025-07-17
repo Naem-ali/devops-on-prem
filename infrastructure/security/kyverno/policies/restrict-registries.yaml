@@ -1,0 +1,24 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+spec:
+  validationFailureAction: enforce
+  background: true
+  rules:
+  - name: validate-registries
+    match:
+      resources:
+        kinds:
+        - Pod
+    validate:
+      message: "Images must be from approved registries only"
+      pattern:
+        spec:
+          containers:
+          - image: "{{ allowed_registries }}"
+      deny:
+        conditions:
+        - key: "{{ images }}"
+          operator: NotIn
+          value: "{{ allowed_registries }}"
