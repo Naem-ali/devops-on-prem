@@ -47,7 +47,7 @@ graph TB
         subgraph Security
             direction LR
             Falco --> |Runtime Security| Apps
-            OPA[OPA/Gatekeeper] --> |Policy Enforcement| Apps
+            OPA[OWASP] --> |Policy Enforcement| Apps
             Kyverno --> |Admission Control| Apps
             Trivy --> |Vulnerability Scanning| Apps
             DependencyCheck[Dependency Check] --> |CVE Scanning| Apps
@@ -129,25 +129,61 @@ graph TB
 
 ```plaintext
 /devops-on-prem/
-├── infrastructure/        # Core infrastructure configuration
-│   ├── k3s/             # K3s cluster setup
-│   ├── argocd/          # ArgoCD configuration
-│   ├── ingress/         # Ingress controller setup
-│   └── security/        # Security tools configuration
-│       ├── falco/       # Falco runtime security
-│       ├── kyverno/     # Policy management
-│       ├── opa/         # Open Policy Agent/Gatekeeper
-│       ├── trivy/       # Vulnerability scanning
-│       └── dependency-check/ # Dependency scanning
-├── monitoring/           # Monitoring stack
-│   ├── prometheus/      # Prometheus configuration
-│   └── grafana/         # Grafana dashboards
-├── helm/                # Helm charts
-│   ├── charts/         # Application Helm charts
-│   └── values/         # Environment-specific values
-└── terraform/           # IaC configurations
-    ├── cluster/        # K3s cluster resources
-    └── monitoring/     # Monitoring resources
+├── infrastructure/           # Core infrastructure configuration
+│   ├── k3s/                # K3s cluster setup
+│   │   └── config.yaml     # K3s configuration
+│   ├── argocd/             # ArgoCD configuration
+│   │   └── values.yaml     # ArgoCD Helm values
+│   ├── ingress/            # Ingress controller setup
+│   └── security/           # Security tools configuration
+│       ├── falco/          # Falco runtime security
+│       │   └── rules/      # Custom Falco rules
+│       ├── kyverno/        # Policy management
+│       │   ├── policies/   # Default policies
+│       │   │   ├── require-probes.yaml
+│       │   │   ├── require-resources.yaml
+│       │   │   ├── require-labels.yaml
+│       │   │   ├── require-non-root.yaml
+│       │   │   ├── disallow-privileged.yaml
+│       │   │   ├── disallow-latest-tag.yaml
+│       │   │   └── restrict-registries.yaml
+│       │   └── custom-policies/  # Environment-specific policies
+│       └── opa/            # Open Policy Agent/Gatekeeper
+│           └── constraints/  # OPA constraints
+├── monitoring/             # Monitoring stack
+│   ├── prometheus/        # Prometheus configuration
+│   │   ├── rules/        # Alert rules
+│   │   └── values.yaml   # Prometheus values
+│   └── grafana/          # Grafana dashboards
+│       ├── dashboards/   # Custom dashboards
+│       └── values.yaml   # Grafana values
+├── helm/                  # Helm charts
+│   ├── charts/           # Application Helm charts
+│   └── values/           # Environment-specific values
+│       ├── development.yaml
+│       ├── production.yaml
+│       └── monitoring.yaml
+├── terraform/             # IaC configurations
+│   ├── cluster/          # K3s cluster resources
+│   │   └── variables.tf  # Cluster variables
+│   └── monitoring/       # Monitoring resources
+│       └── variables.tf  # Monitoring variables
+├── scripts/              # Utility scripts
+│   ├── update-configs.sh # Configuration management
+│   ├── setup-kyverno.sh # Kyverno setup
+│   ├── trivy-scan.sh    # Security scanning
+│   └── dependency-check.sh # Dependency scanning
+├── templates/            # Configuration templates
+│   ├── terraform.tfvars.template
+│   ├── k3s-config.yaml.template
+│   └── argocd-values.yaml.template
+├── reports/              # Scan reports (gitignored)
+│   ├── trivy/           # Trivy scan results
+│   └── dependency-check/ # Dependency check results
+├── values.yaml          # Example configuration values
+├── values.local.yaml    # Local configuration (gitignored)
+├── PARAMETERS.md        # Parameter documentation
+└── README.md           # Project documentation
 ```
 
 ## 🚀 Quick Start
