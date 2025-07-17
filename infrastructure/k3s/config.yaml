@@ -1,0 +1,28 @@
+# K3s Configuration
+cluster-name: ${infrastructure.cluster.name}
+token: ${infrastructure.cluster.token}
+write-kubeconfig-mode: "0644"
+
+# Networking
+cluster-cidr: ${infrastructure.networking.pod_cidr}
+service-cidr: ${infrastructure.networking.service_cidr}
+cluster-dns: ${infrastructure.networking.cluster_dns}
+cluster-domain: ${infrastructure.networking.cluster_domain}
+
+# Storage
+default-local-storage-path: "/opt/local-path-provisioner"
+disable:
+- local-storage # We'll use our own storage solution
+- traefik # We'll use our own ingress
+
+# Security
+kube-apiserver-arg:
+- "enable-admission-plugins=NodeRestriction,PodSecurityPolicy"
+- "audit-log-path=/var/log/kubernetes/audit.log"
+- "audit-policy-file=/etc/rancher/k3s/audit-policy.yaml"
+
+# High Availability
+datastore-endpoint: "http://minio.infrastructure:9000"
+tls-san:
+- "kubernetes.local"
+- "${infrastructure.cluster.api_fqdn}"
