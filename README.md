@@ -17,6 +17,8 @@
 ![Kyverno](https://img.shields.io/badge/kyverno-%23326CE5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)
 ![OPA](https://img.shields.io/badge/opa-%23000000.svg?style=for-the-badge&logo=openpolicyagent&logoColor=white)
 ![Gatekeeper](https://img.shields.io/badge/gatekeeper-%23326CE5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Trivy](https://img.shields.io/badge/trivy-%23000000.svg?style=for-the-badge&logo=trivy&logoColor=white)
+![Dependency Check](https://img.shields.io/badge/dependency%20check-%23000000.svg?style=for-the-badge&logo=dependencycheck&logoColor=white)
 
 ### Monitoring & Logging
 ![Prometheus](https://img.shields.io/badge/prometheus-%23E6522C.svg?style=for-the-badge&logo=prometheus&logoColor=white)
@@ -44,15 +46,18 @@ graph TB
         
         subgraph Security
             direction LR
-            Falco --> Apps
-            OPA[OPA/Gatekeeper] --> Apps
-            Kyverno --> Apps
+            Falco --> |Runtime Security| Apps
+            OPA[OPA/Gatekeeper] --> |Policy Enforcement| Apps
+            Kyverno --> |Admission Control| Apps
+            Trivy --> |Vulnerability Scanning| Apps
+            DependencyCheck[Dependency Check] --> |CVE Scanning| Apps
         end
         
         subgraph Monitoring
             direction LR
             Prometheus --> Grafana
             Apps --> Prometheus
+            SecurityAlerts[Security Alerts] --> Grafana
         end
     end
 
@@ -60,28 +65,49 @@ graph TB
         Git --> |Trigger| Pipeline[GitLab CI]
         Pipeline --> |Build Charts| HelmCharts
         Pipeline --> |Sync| ArgoCD
+        Pipeline --> |Security Scan| SecurityScans[Security Scans]
+        
+        subgraph SecurityScans
+            Trivy --> |Container Scan| Pipeline
+            Trivy --> |IaC Scan| Pipeline
+            DependencyCheck --> |Dependency Scan| Pipeline
+        end
     end
 ```
 
 ### Data Flow
 ```mermaid
-graph LR
+graph TB
     subgraph Development
         Git --> |Trigger| Pipeline
-        Pipeline --> |Build| HelmCharts[Helm Charts]
-        HelmCharts --> |Package| ArgoCD
+        Pipeline --> |Build| Images[Container Images]
+        Pipeline --> |Package| HelmCharts[Helm Charts]
+    end
+    
+    subgraph SecurityScanning
+        Images --> |Scan| Trivy
+        HelmCharts --> |Scan| Trivy
+        Code[Source Code] --> |Scan| DependencyCheck
+        
+        Trivy --> |Report| SecurityReport[Security Reports]
+        DependencyCheck --> |Report| SecurityReport
+        
+        subgraph Policies
+            OPA --> |Enforce| K8sResources[K8s Resources]
+            Kyverno --> |Validate| K8sResources
+        end
     end
     
     subgraph Runtime
-        ArgoCD --> |Deploy| Apps[Applications]
+        Apps[Applications] --> |Deploy| K8sResources
         Falco --> |Monitor| Apps
-        OPA --> |Policy Check| Apps
-        Kyverno --> |Validate| Apps
+        SecurityReport --> |Alert| Monitoring
     end
     
-    subgraph Monitoring Layer
+    subgraph Monitoring
         Prometheus --> |Query| Grafana
         Apps --> |Metrics| Prometheus
+        SecurityAlerts --> |Display| Grafana
     end
 ```
 
@@ -110,7 +136,9 @@ graph TB
 │   └── security/        # Security tools configuration
 │       ├── falco/       # Falco runtime security
 │       ├── kyverno/     # Policy management
-│       └── opa/         # Open Policy Agent/Gatekeeper
+│       ├── opa/         # Open Policy Agent/Gatekeeper
+│       ├── trivy/       # Vulnerability scanning
+│       └── dependency-check/ # Dependency scanning
 ├── monitoring/           # Monitoring stack
 │   ├── prometheus/      # Prometheus configuration
 │   └── grafana/         # Grafana dashboards
@@ -185,6 +213,8 @@ monitoring:
 security:
   falco: {...}
   opa: {...}
+  trivy: {...}
+  dependency-check: {...}
 ```
 
 ### Update Process
@@ -226,14 +256,36 @@ security:
    - Configurable CVSS thresholds
    - Custom suppressions support
 
+5. **Infrastructure Security Scanning**
+   - Trivy container scanning
+   - Kubernetes resource scanning
+   - Configuration file scanning
+   - File system vulnerability scanning
+
 ### Running Security Scans
 ```bash
 # Run dependency vulnerability scan
 ./scripts/dependency-check.sh
 
-# View reports
-open reports/dependency-check/dependency-check-report.html
+# Run Trivy security scans
+./scripts/trivy-scan.sh
+
+# View all security reports
+ls -l reports/trivy/
 ```
+
+### Security Scan Targets
+- Container Images
+- Kubernetes Resources
+- Infrastructure as Code
+- Configuration Files
+- File System Vulnerabilities
+
+### Security Reports
+Reports are generated in multiple formats:
+- Table (CLI output)
+- JSON (for automation)
+- HTML (for human review)
 
 ## 📊 Monitoring & Logging
 

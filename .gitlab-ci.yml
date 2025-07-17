@@ -1,0 +1,12 @@
+security_scan:
+  stage: security
+  script:
+  - ./scripts/trivy-scan.sh
+  artifacts:
+    paths:
+    - reports/trivy/
+    reports:
+      security: reports/trivy/*.json
+  rules:
+  - changes:
+    - "**/*"
