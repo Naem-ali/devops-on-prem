@@ -1,47 +1,44 @@
 terraform {
   required_version = ">= 1.0.0"
-  required_providers {
-    vsphere = {
-      source  = "hashicorp/vsphere"
-      version = "~> 2.0"
-    }
+  backend "http" {
+    address = "http://minio.infrastructure.svc.cluster.local:9000/terraform-state/terraform.tfstate"
   }
 }
 
-module "k3s_cluster" {
-  source = "./modules/k3s"
-
-  node_count = 3
-  vm_config = {
-    cpu    = 4
-    memory = 8192
-    disk   = 100
-  }
-  network_config = {
-    subnet = "192.168.1.0/24"
-    domain = "local"
-  }
+module "cluster" {
+  source = "./modules/cluster"
+  
+  cluster_name = var.cluster_name
+  node_count = var.cluster_node_count
+  node_size = var.cluster_node_size
 }
 
-module "metallb" {
-  source = "./modules/metallb"
+module "networking" {
+  source = "./modules/networking"
   
-  ip_pool_range = "192.168.1.200-192.168.1.250"
-  depends_on    = [module.k3s_cluster]
+  vpc_cidr = var.network_cidr
+  subnets = var.network_subnets
+  domain = var.network_domain
 }
 
-module "argocd" {
-  source = "./modules/argocd"
+module "applications" {
+  source = "./modules/applications"
   
-  domain           = "argocd.local"
-  admin_password   = var.argocd_password
-  depends_on       = [module.metallb]
+  monitoring_enabled = var.app_monitoring_enabled
+  monitoring_storage = var.app_monitoring_storage_size
+  monitoring_retention = var.app_monitoring_retention_days
+  
+  argocd_enabled = var.app_argocd_enabled
+  argocd_domain = var.app_argocd_domain
+  
+  security_enabled = var.app_security_enabled
+  security_policies = var.app_security_policies
 }
 
-module "monitoring" {
-  source = "./modules/monitoring"
+module "storage" {
+  source = "./modules/storage"
   
-  storage_class    = "local-path"
-  grafana_password = var.grafana_password
-  depends_on       = [module.metallb]
+  minio_enabled = var.storage_minio_enabled
+  minio_size = var.storage_minio_size
+  minio_replicas = var.storage_minio_replicas
 }

@@ -125,6 +125,131 @@ graph TB
     Master3 <--> Master1
 ```
 
+## 🏗️ Infrastructure Management
+
+### Resource Creation Flow
+```mermaid
+graph TB
+    Values[values.infrastructure.yaml] --> Generator[generate-terraform-vars.sh]
+    Generator --> TFVars[terraform.tfvars]
+    TFVars --> Terraform[Terraform Modules]
+    
+    subgraph Terraform Modules
+        Cluster[Cluster Module]
+        Network[Network Module]
+        Apps[Applications Module]
+        Storage[Storage Module]
+    end
+    
+    Terraform --> K3s[K3s Cluster]
+    K3s --> Resources[Infrastructure Resources]
+```
+
+### Quick Start
+
+1. **Configure Infrastructure**
+```bash
+# Copy and edit infrastructure values
+cp infrastructure/values.infrastructure.yaml.example infrastructure/values.infrastructure.yaml
+vim infrastructure/values.infrastructure.yaml
+```
+
+2. **Validate Configuration**
+```bash
+# Validate infrastructure configuration
+./scripts/validate-infrastructure.sh
+```
+
+3. **Deploy Infrastructure**
+```bash
+# Generate and apply Terraform configuration
+./scripts/deploy-infrastructure.sh
+```
+
+### Infrastructure Components
+
+```plaintext
+infrastructure/
+├── values.infrastructure.yaml  # Infrastructure configuration
+├── terraform/                  # Terraform modules
+│   ├── modules/
+│   │   ├── cluster/           # K3s cluster resources
+│   │   ├── networking/        # Network configuration
+│   │   ├── applications/      # Core applications
+│   │   └── storage/          # Storage resources
+│   └── main.tf               # Main Terraform configuration
+└── scripts/
+    ├── generate-terraform-vars.sh  # Configuration generator
+    ├── deploy-infrastructure.sh    # Deployment script
+    └── validate-infrastructure.sh  # Validation script
+```
+
+### Configuration Structure
+
+```yaml
+infrastructure:
+  cluster:      # K3s cluster configuration
+    name: "k3s-cluster"
+    node_count: 3
+    node_size: "large"
+    
+  networking:   # Network settings
+    cidr: "10.0.0.0/16"
+    subnets: ["10.0.1.0/24"]
+    
+  applications: # Core applications
+    monitoring: {enabled: true}
+    argocd: {enabled: true}
+    security: {enabled: true}
+    
+  storage:      # Storage configuration
+    minio: {enabled: true}
+```
+
+### Workflow
+
+1. **Configuration**
+   - Edit `values.infrastructure.yaml`
+   - Define infrastructure requirements
+   - Set component configurations
+
+2. **Validation**
+   - Syntax checking
+   - Resource validation
+   - Dependency verification
+
+3. **Deployment**
+   - Variable generation
+   - Terraform planning
+   - Infrastructure creation
+   - Deployment verification
+
+4. **Management**
+   - State stored in MinIO
+   - Version controlled
+   - Automated backups
+   - Change tracking
+
+### Best Practices
+
+1. **Configuration Management**
+   - Version control values file
+   - Use separate environments
+   - Document changes
+   - Regular validation
+
+2. **Deployment**
+   - Review Terraform plans
+   - Test in development
+   - Maintain state backups
+   - Monitor resources
+
+3. **Maintenance**
+   - Regular updates
+   - Security patches
+   - Resource optimization
+   - Performance monitoring
+
 ## 📂 Project Structure
 
 ```plaintext

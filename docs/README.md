@@ -42,9 +42,3 @@ Comprehensive documentation for the DevOps infrastructure project.
 # Update diagrams
 ./scripts/update-diagrams.sh
 ```
-
-## Important Links
-- [Architecture Overview](architecture/overview.md)
-- [Installation Guide](operations/installation.md)
-- [Security Policies](security/policies.md)
-- [Recovery Procedures](recovery/restore.md)

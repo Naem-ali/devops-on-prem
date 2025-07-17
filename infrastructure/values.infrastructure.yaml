@@ -1,0 +1,33 @@
+infrastructure:
+  cluster:
+    name: "k3s-cluster"
+    node_count: 3
+    node_size: "large"
+    region: "local"
+
+  networking:
+    cidr: "10.0.0.0/16"
+    subnets:
+    - "10.0.1.0/24"
+    - "10.0.2.0/24"
+    domain: "cluster.local"
+
+  applications:
+    monitoring:
+      enabled: true
+      storage_size: "50Gi"
+      retention_days: 15
+
+    argocd:
+      enabled: true
+      domain: "argocd.cluster.local"
+
+    security:
+      enabled: true
+      policies: [ "default", "strict" ]
+
+  storage:
+    minio:
+      enabled: true
+      size: "100Gi"
+      replicas: 4
