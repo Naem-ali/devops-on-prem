@@ -256,65 +256,78 @@ infrastructure:
 /devops-on-prem/
 ├── infrastructure/           # Core infrastructure configuration
 │   ├── k3s/                # K3s cluster setup
-│   │   └── config.yaml     # K3s configuration
+│   │   ├── config.yaml     # K3s configuration
+│   │   └── manifests/      # K3s base manifests
 │   ├── argocd/             # ArgoCD configuration
-│   │   └── values.yaml     # ArgoCD Helm values
+│   │   ├── values.yaml     # ArgoCD Helm values
+│   │   ├── applications/   # Application definitions
+│   │   └── projects/       # Project configurations
 │   ├── ingress/            # Ingress controller setup
-│   └── security/           # Security tools configuration
-│       ├── falco/          # Falco runtime security
-│       │   └── rules/      # Custom Falco rules
-│       ├── kyverno/        # Policy management
-│       │   ├── policies/   # Default policies
-│       │   │   ├── require-probes.yaml
-│       │   │   ├── require-resources.yaml
-│       │   │   ├── require-labels.yaml
-│       │   │   ├── require-non-root.yaml
-│       │   │   ├── disallow-privileged.yaml
-│       │   │   ├── disallow-latest-tag.yaml
-│       │   │   └── restrict-registries.yaml
-│       │   └── custom-policies/  # Environment-specific policies
-│       └── opa/            # Open Policy Agent/Gatekeeper
-│           └── constraints/  # OPA constraints
+│   │   ├── values.yaml     # Ingress configuration
+│   │   └── rules/         # Ingress rules
+│   ├── security/           # Security tools configuration
+│   │   ├── falco/         # Falco runtime security
+│   │   │   ├── rules/     # Custom Falco rules
+│   │   │   └── values.yaml # Falco configuration
+│   │   ├── kyverno/       # Policy management
+│   │   │   ├── policies/  # Default policies
+│   │   │   └── custom/    # Custom policies
+│   │   └── opa/           # Open Policy Agent
+│   │       ├── constraints/ # OPA constraints
+│   │       └── values.yaml # OPA configuration
 │   └── storage/           # Storage configuration
-│       └── minio/        # MinIO for Terraform state
-│           ├── values.yaml # MinIO Helm values
+│       └── minio/        # MinIO configuration
+│           ├── values.yaml # MinIO settings
 │           └── backup/    # Backup configurations
-├── monitoring/             # Monitoring stack
-│   ├── prometheus/        # Prometheus configuration
-│   │   ├── rules/        # Alert rules
-│   │   └── values.yaml   # Prometheus values
-│   └── grafana/          # Grafana dashboards
-│       ├── dashboards/   # Custom dashboards
-│       └── values.yaml   # Grafana values
-├── helm/                  # Helm charts
-│   ├── charts/           # Application Helm charts
-│   └── values/           # Environment-specific values
-│       ├── development.yaml
-│       ├── production.yaml
-│       └── monitoring.yaml
-├── terraform/             # IaC configurations
-│   ├── backend.tf        # Terraform state configuration
-│   ├── cluster/          # K3s cluster resources
-│   │   └── variables.tf  # Cluster variables
-│   └── monitoring/       # Monitoring resources
-│       └── variables.tf  # Monitoring variables
-├── scripts/              # Utility scripts
-│   ├── update-configs.sh # Configuration management
-│   ├── setup-kyverno.sh # Kyverno setup
-│   ├── trivy-scan.sh    # Security scanning
-│   ├── dependency-check.sh # Dependency scanning
-│   └── setup-minio.sh   # MinIO setup script
-├── templates/            # Configuration templates
-│   ├── terraform.tfvars.template
-│   ├── k3s-config.yaml.template
-│   └── argocd-values.yaml.template
-├── reports/              # Scan reports (gitignored)
-│   ├── trivy/           # Trivy scan results
-│   └── dependency-check/ # Dependency check results
-├── values.yaml          # Example configuration values
-├── values.local.yaml    # Local configuration (gitignored)
-├── PARAMETERS.md        # Parameter documentation
-└── README.md           # Project documentation
+├── monitoring/            # Monitoring stack
+│   ├── prometheus/       # Prometheus configuration
+│   │   ├── rules/       # Alert rules
+│   │   ├── values.yaml  # Prometheus settings
+│   │   └── dashboards/  # Custom dashboards
+│   └── grafana/         # Grafana configuration
+│       ├── dashboards/  # Dashboard definitions
+│       ├── alerts/      # Alert channels
+│       └── values.yaml  # Grafana settings
+├── terraform/            # Infrastructure as Code
+│   ├── modules/         # Terraform modules
+│   │   ├── cluster/    # K3s cluster module
+│   │   ├── network/    # Network module
+│   │   ├── apps/       # Applications module
+│   │   └── storage/    # Storage module
+│   ├── environments/   # Environment-specific configs
+│   │   ├── dev/       # Development environment
+│   │   └── prod/      # Production environment
+│   ├── backend.tf     # State configuration
+│   └── variables.tf   # Variable definitions
+├── helm/               # Helm charts
+│   ├── charts/        # Application charts
+│   └── values/        # Environment values
+├── scripts/           # Utility scripts
+│   ├── setup/        # Installation scripts
+│   │   ├── install-tools.sh
+│   │   └── setup-cluster.sh
+│   ├── backup/       # Backup scripts
+│   │   ├── backup-etcd.sh
+│   │   └── backup-state.sh
+│   ├── security/     # Security scripts
+│   │   ├── trivy-scan.sh
+│   │   └── dependency-check.sh
+│   └── monitoring/   # Monitoring scripts
+├── docs/             # Documentation
+│   ├── architecture/ # Architecture docs
+│   ├── operations/   # Operations guides
+│   └── security/     # Security docs
+├── templates/        # Configuration templates
+│   ├── terraform/   # Terraform templates
+│   ├── kubernetes/  # K8s templates
+│   └── scripts/     # Script templates
+├── tests/           # Test configurations
+│   ├── integration/ # Integration tests
+│   └── security/    # Security tests
+├── .gitlab-ci.yml   # CI/CD configuration
+├── values.yaml      # Example values
+├── values.local.yaml # Local values (gitignored)
+└── README.md        # Project documentation
 ```
 
 ## 🚀 Quick Start
