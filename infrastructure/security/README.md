@@ -1,32 +1,60 @@
 # Security Configuration
 
-This directory contains security tools and policies for the Kubernetes cluster.
+## Overview
+This directory contains security tools, policies, and configurations for maintaining a secure Kubernetes infrastructure.
 
 ## Components
-- **Falco**: Runtime security monitoring
-- **Kyverno**: Policy management and admission control
-- **OPA/Gatekeeper**: Policy enforcement
-- **Network Policies**: Network security
+```plaintext
+.
+├── falco/              # Runtime security monitoring
+│   ├── rules/         # Custom Falco rules
+│   └── values.yaml    # Falco configuration
+├── kyverno/           # Policy management
+│   ├── policies/      # Default policies
+│   └── custom-policies/ # Environment-specific policies
+└── opa/              # Open Policy Agent
+    └── constraints/   # OPA constraints
+```
 
-## Default Policies
-- Non-root container enforcement
-- Resource limits requirement
-- Privileged container prevention
-- Image registry restrictions
-- Required labels
-- Latest tag prevention
+## Policy Implementation
+- **Runtime Security** (Falco)
+  - Process monitoring
+  - File system changes
+  - Network connections
+  - Container spawning
+
+- **Admission Control** (Kyverno)
+  - Resource requirements
+  - Image policy
+  - Security context
+  - Configuration validation
+
+- **Policy Enforcement** (OPA)
+  - RBAC validation
+  - Network policies
+  - Resource quotas
+  - Compliance checks
 
 ## Usage
 ```bash
-# Apply all security policies
+# Deploy all security components
+./scripts/setup-security.sh
+
+# Apply Kyverno policies
 kubectl apply -f kyverno/policies/
 
-# Monitor security events
-kubectl logs -n security -l app=falco
+# Check policy violations
+kubectl get policyreport -A
 ```
 
-## Policy Testing
-Test your workloads against policies:
-```bash
-kubectl describe clusterpolicy require-labels
-```
+## Monitoring
+- All security events are forwarded to Grafana
+- Violation alerts sent to Slack
+- Daily compliance reports
+- Audit logging enabled
+
+## Best Practices
+1. Always test policies in audit mode first
+2. Document policy exceptions
+3. Regular policy reviews
+4. Monitor false positives
