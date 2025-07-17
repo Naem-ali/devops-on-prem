@@ -146,15 +146,6 @@ terraform init -reconfigure
 
 Total Recovery: 60-85 minutes
 
-## Emergency Contacts
-
-1. Infrastructure Team Lead
-   - Phone: +1-555-0123
-   - Email: infra-lead@company.com
-
-2. Cloud Platform Engineer
-   - Phone: +1-555-0124
-   - Email: platform@company.com
 
 ## Recovery Checklist
 

@@ -143,11 +143,6 @@ kubectl create ns dr-test
 | ArgoCD    | 30m   | 24h   |
 | Apps      | 2h    | 24h   |
 
-## Contacts and Escalation
-
-1. Platform Team: platform@company.com
-2. Security Team: security@company.com
-3. On-Call Phone: +1-555-0123
 
 ## Recovery Validation Checklist
 
