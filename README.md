@@ -257,11 +257,15 @@ infrastructure:
 ├── infrastructure/           # Core infrastructure configuration
 │   ├── k3s/                # K3s cluster setup
 │   │   ├── config.yaml     # K3s configuration
+│   │   ├── scripts/        # K3s installation scripts
 │   │   └── manifests/      # K3s base manifests
 │   ├── argocd/             # ArgoCD configuration
 │   │   ├── values.yaml     # ArgoCD Helm values
 │   │   ├── applications/   # Application definitions
 │   │   └── projects/       # Project configurations
+│   ├── cert-manager/       # Certificate management
+│   │   ├── values.yaml     # Cert-manager configuration
+│   │   └── certificates/   # Certificate definitions
 │   ├── ingress/            # Ingress controller setup
 │   │   ├── values.yaml     # Ingress configuration
 │   │   └── rules/         # Ingress rules
@@ -315,7 +319,13 @@ infrastructure:
 │   └── monitoring/   # Monitoring scripts
 ├── docs/             # Documentation
 │   ├── architecture/ # Architecture docs
+│   │   ├── overview.md
+│   │   └── data-flow.md
+│   ├── deployment/   # Deployment guides
+│   │   └── deployment-guide.md
 │   ├── operations/   # Operations guides
+│   │   ├── maintenance.md
+│   │   └── disaster-recovery.md
 │   └── security/     # Security docs
 ├── templates/        # Configuration templates
 │   ├── terraform/   # Terraform templates
@@ -325,6 +335,7 @@ infrastructure:
 │   ├── integration/ # Integration tests
 │   └── security/    # Security tests
 ├── .gitlab-ci.yml   # CI/CD configuration
+├── .gitignore       # Git ignore rules
 ├── values.yaml      # Example values
 ├── values.local.yaml # Local values (gitignored)
 └── README.md        # Project documentation
