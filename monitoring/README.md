@@ -1,50 +1,31 @@
-# Monitoring Storage Configuration
+# Monitoring Stack
 
-## Storage Overview
-- Prometheus: 50Gi for TSDB
-- Loki: 50Gi for logs
-- Grafana: 10Gi for dashboards
+Monitoring infrastructure based on Prometheus and Grafana.
 
-## Retention Policies
-- Prometheus: 15 days, 45GB max
-- Loki: 15 days default, 30 days for production
-- Grafana: Daily backups
+## Components
+- Prometheus: Metrics collection and storage
+- Grafana: Visualization and alerting
+- AlertManager: Alert routing and notification
 
-## Local Storage Setup
-```bash
-# Apply storage class
-kubectl apply -f infrastructure/storage/local-storage.yaml
-
-# Verify storage class
-kubectl get storageclass
+## Directory Structure
+```plaintext
+.
+├── prometheus/
+│   ├── rules/       # Alert rules
+│   └── values.yaml  # Prometheus configuration
+└── grafana/
+    ├── dashboards/  # Custom dashboards
+    └── values.yaml  # Grafana configuration
 ```
 
-## Maintenance
+## Default Dashboards
+- Cluster Overview
+- Node Metrics
+- Security Insights
+- Application Metrics
 
-### Volume Cleanup
-```bash
-# Check volume usage
-kubectl -n monitoring get pv
-
-# Cleanup old data
-kubectl -n monitoring exec -it prometheus-0 -- promtool tsdb clean
-```
-
-### Backup Volumes
-```bash
-# Backup Grafana
-kubectl -n monitoring exec -it grafana-0 -- grafana-cli admin data-migration backup
-
-# Backup Prometheus
-kubectl -n monitoring exec -it prometheus-0 -- promtool tsdb snapshot
-```
-
-### Restore Data
-```bash
-# Restore Grafana
-kubectl cp backup.tar.gz monitoring/grafana-0:/var/lib/grafana/backup.tar.gz
-kubectl -n monitoring exec -it grafana-0 -- grafana-cli admin data-migration restore
-
-# Restore Prometheus
-kubectl -n monitoring exec -it prometheus-0 -- promtool tsdb snapshot restore
-```
+## Alert Rules
+- High CPU/Memory Usage
+- Pod Restarts
+- Security Violations
+- Certificate Expiration
